@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Wall</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+
+<body>
+    <div class="container bg-light p-5">
+        <div class="row border-bottom border-dark mb-2">
+            <h1 class="col-8 p-0">Chicago Codes Wall</h1>
+            <h2 class="col p-0">Welcome {{request.session.first_name}}</h2>
+        </div>
+        <form action="/logout" method="get">
+            <div class="form-group">
+                <button type="submit">log off</button>
+            </div>
+        </form>
+        <br>
+        <br>
+        <!-- Post a message -->
+        <form action="/post_message" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="post_message">Post a message</label>
+                <textarea class="form-control" name="post_message" id="post_message" cols="30" rows="10"></textarea>
+                <button type="submit">Post a message</button>
+            </div>
+        </form>
+        <br>
+        <!-- Show all messages -->
+        <div id="posted_messages">
+            {% for message in all_messages reversed %}
+            {{message.user.first_name}} {{message.user.last_name}} {{message.created_at}}
+            <br>
+            <br>
+            {{message.message}}
+            <br>
+            <br>
+            <!-- Show like count -->
+            {{message.mess_likes.count}} Like{{message.mess_likes.count|pluralize}}
+            <br>
+            <br>
+            <!-- Delete button so that user can delete own message -->
+            {% if request.session.new_user_id == message.user.id %}
+            <form action="/delete_message" method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <input type="hidden" value="{{message.id}}" name="message_id_to_delete">
+                    <button type="submit">Delete message</button>
+                </div>
+            </form>
+            {% endif %}
+            <!-- Like button  -->
+            {% if user in message.mess_likes.all %}
+            <a href="/wall/messages/{{message.id}}/unlike" class="text-secondary">UNLIKE</a>
+            {% else %}
+            <a href="/wall/messages/{{message.id}}/like" class="text-success">LIKE</a>
+            {% endif %}
+            <br>
+            <br>
+            <br>
+            <!-- Show all comments for message -->
+            {% for comment in message.comments.all %}
+            {{comment.user.first_name}} {{comment.user.last_name}} {{comment.created_at}}
+            <br>
+            <br>
+            {{ comment.comment }}
+            <br>
+            <br>
+            <br>
+            {% endfor %}
+            <br>
+            <!-- Post a comment input field -->
+            <form action="/post_comment" method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="post_comment">Post a comment</label>
+                    <textarea class="form-control" name="post_comment" id="post_comment" cols="30" rows="3"></textarea>
+                    <input type="hidden" value="{{message.id}}" name="message_id_for_comment">
+                    <button type="submit">Post a comment</button>
+                </div>
+            </form>
+            <br>
+            <br>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+
+</html>
